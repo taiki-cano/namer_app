@@ -147,12 +147,14 @@ class GeneratorPage extends StatelessWidget {
       icon = Icons.favorite_border;
     }
 
+    var historyView = HistoryListView();
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // SizedBox(height: 200, child: HistoryListView()),
-          Expanded(flex: 3, child: HistoryListView()),
+          Expanded(flex: 3, child: historyView), // HistoryListView()),
           BigCard(pair: pair),
           SizedBox(height: 10),
           Row(
@@ -165,7 +167,12 @@ class GeneratorPage extends StatelessWidget {
                   icon: Icon(icon),
                   label: Text('Like')),
               SizedBox(width: 10),
-              ElevatedButton(onPressed: () => appState.goNext(), child: Text('Next')),
+              ElevatedButton(
+                  onPressed: () {
+                    appState.goNext();
+                    historyView.controller.jumpTo(0);
+                  },
+                  child: Text('Next')),
             ],
           ),
           Spacer(flex: 2),
@@ -226,8 +233,9 @@ class BigCard extends StatelessWidget {
 }
 
 class HistoryListView extends StatefulWidget {
-  const HistoryListView({super.key});
+  HistoryListView({super.key});
 
+  final ScrollController controller = ScrollController();
   @override
   State<HistoryListView> createState() => _HistoryListViewState();
 }
@@ -240,6 +248,7 @@ class _HistoryListViewState extends State<HistoryListView> {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
   );
+
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<MyAppState>();
@@ -252,6 +261,7 @@ class _HistoryListViewState extends State<HistoryListView> {
         reverse: true,
         padding: EdgeInsets.only(top: 100),
         initialItemCount: appState.history.length,
+        controller: widget.controller,
         itemBuilder: (context, index, animation) {
           final pair = appState.history[index];
           return SizeTransition(
@@ -259,7 +269,10 @@ class _HistoryListViewState extends State<HistoryListView> {
             child: Center(
               // child: Text(pair.asLowerCase, semanticsLabel: pair.asPascalCase),
               child: TextButton.icon(
-                onPressed: () => appState.toggleFavorite(pair),
+                onPressed: () {
+                  appState.toggleFavorite(pair);
+                  // debugPrint('${_controller.position.maxScrollExtent}');
+                },
                 icon:
                     appState.favorites.contains(pair) ? Icon(Icons.favorite, size: 12) : SizedBox(),
                 label: Text(pair.asLowerCase, semanticsLabel: pair.asPascalCase),
